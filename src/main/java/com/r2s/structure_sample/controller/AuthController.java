@@ -21,4 +21,10 @@ public class AuthController {
         var res = authService.register(authRequest);
         return ResponseEntity.status(res.getStatus()).body(res);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<ResponseObject> login(@RequestBody AuthRequest authRequest) {
+        var res = authService.login(authRequest);
+        return ResponseEntity.status(res.getStatus()).body(res);
+    }
 }

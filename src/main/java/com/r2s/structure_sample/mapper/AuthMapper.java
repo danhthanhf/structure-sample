@@ -7,6 +7,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface AuthMapper {
-    AuthRequest toAuthRequest(String email, String password, String firstName, String lastName);
+    AuthRequest toAuthRequest(User user);
+
     User toUser(AuthRequest authRequest);
 }

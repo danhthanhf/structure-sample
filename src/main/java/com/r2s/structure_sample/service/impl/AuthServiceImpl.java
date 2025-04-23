@@ -1,6 +1,8 @@
 package com.r2s.structure_sample.service.impl;
 
+import com.r2s.structure_sample.common.enums.Role;
 import com.r2s.structure_sample.common.response.ResponseObject;
+import com.r2s.structure_sample.common.util.JwtUtil;
 import com.r2s.structure_sample.dto.AuthRequest;
 import com.r2s.structure_sample.exception.ResourceConflictException;
 import com.r2s.structure_sample.mapper.AuthMapper;
@@ -23,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
 
     @Override
     public ResponseObject register(AuthRequest auth) {
@@ -31,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
         }
         var user = authMapper.toUser(auth);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
+        user.setRole(Role.USER);
         authRepository.save(user);
         return ResponseObject.builder().message("Success registry").status(HttpStatus.CREATED).build();
     }
@@ -45,7 +48,13 @@ public class AuthServiceImpl implements AuthService {
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
 
-        return ResponseObject.builder().message("Login successful").status(HttpStatus.OK).build();
+        var userDetails = authRepository.findByEmail(user.getEmail()).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+
+        String token = jwtUtil.generateToken(userDetails.getEmail());
+
+        return ResponseObject.builder().message("Login successful").data(token).status(HttpStatus.OK).build();
     }
 
 
