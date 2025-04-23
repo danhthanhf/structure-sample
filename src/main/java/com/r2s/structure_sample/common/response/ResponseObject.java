@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 
 @Builder
 @Getter
+@Setter
 public class ResponseObject {
     private String message;
     private Object data;

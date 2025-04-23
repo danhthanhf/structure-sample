@@ -9,6 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -33,10 +37,10 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedHeaders("*")
+//                        .allowedHeaders("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
-                        .allowedOrigins("http://localhost:3000", "http://localhost:8080")
-                        .allowCredentials(true);
+                        .allowedOrigins("http://localhost:3000", "http://localhost:8080");
+//                        .allowCredentials(true);
             }
         };
     }
@@ -57,15 +61,29 @@ public class SecurityConfig {
     private AuthenticationEntryPoint authenticationEntryPoint() {
         return (request, response, authenticationEntryPointException) -> {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
             var res = ResponseObject.builder()
                     .status(HttpStatus.UNAUTHORIZED)
-                    .message("Please login to access this resource")
+                    .message("Unauthorized")
                     .build();
+
+            if (authenticationEntryPointException instanceof BadCredentialsException) {
+                res.setMessage("Invalid username or password");
+            } else if (authenticationEntryPointException instanceof LockedException) {
+                res.setMessage("Account is locked");
+            } else if (authenticationEntryPointException instanceof DisabledException) {
+                res.setMessage("Account is disabled");
+            } else if (authenticationEntryPointException instanceof InsufficientAuthenticationException) {
+                res.setMessage("Insufficient authentication");
+            }
+
+            // Convert ResponseObject to JSON and send response
             var objectMapper = new ObjectMapper();
-            response.setContentType(("application/json"));
+            response.setContentType("application/json");
             response.getWriter().write(objectMapper.writeValueAsString(res));
         };
     }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
