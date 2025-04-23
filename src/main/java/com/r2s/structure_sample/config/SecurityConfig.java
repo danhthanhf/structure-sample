@@ -77,7 +77,6 @@ public class SecurityConfig {
                 res.setMessage("Insufficient authentication");
             }
 
-            // Convert ResponseObject to JSON and send response
             var objectMapper = new ObjectMapper();
             response.setContentType("application/json");
             response.getWriter().write(objectMapper.writeValueAsString(res));
@@ -95,7 +94,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/user/**").hasAnyRole(Role.ADMIN.name(), Role.USER.name())
                         .requestMatchers("/api/v1/manager/**").hasAnyRole(Role.ADMIN.name(), Role.MANAGER.name())
                         .requestMatchers("/api/v1/admin/**").hasRole(Role.ADMIN.name())
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .exceptionHandling(ex -> ex
                         .accessDeniedHandler(accessDeniedHandler())
