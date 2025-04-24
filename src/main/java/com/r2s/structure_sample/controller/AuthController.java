@@ -3,6 +3,7 @@ package com.r2s.structure_sample.controller;
 import com.r2s.structure_sample.common.response.ResponseObject;
 import com.r2s.structure_sample.dto.AuthRequest;
 import com.r2s.structure_sample.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,13 +18,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ResponseObject> register(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<ResponseObject> register(@RequestBody @Valid AuthRequest authRequest) {
         var res = authService.register(authRequest);
         return ResponseEntity.status(res.getStatus()).body(res);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ResponseObject> login(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<ResponseObject> login(@RequestBody @Valid AuthRequest authRequest) {
         var res = authService.login(authRequest);
         return ResponseEntity.status(res.getStatus()).body(res);
     }

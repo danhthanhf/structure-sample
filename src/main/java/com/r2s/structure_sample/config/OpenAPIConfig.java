@@ -26,11 +26,4 @@ import org.springframework.context.annotation.Configuration;
         in = SecuritySchemeIn.HEADER
 )
 public class OpenAPIConfig {
-    @Bean
-    public OpenAPI customOpenAPI() {
-        return new OpenAPI()
-                .info(new Info().title("Structure Sample API")
-                        .version("1.0")
-                        .description("API Documentation for My Application"));
-    }
 }
