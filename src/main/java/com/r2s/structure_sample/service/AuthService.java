@@ -4,7 +4,7 @@ import com.r2s.structure_sample.common.response.ResponseObject;
 import com.r2s.structure_sample.dto.AuthRequest;
 
 public interface AuthService {
-     ResponseObject register(AuthRequest auth);
-     ResponseObject login(AuthRequest auth);
+     ResponseObject<Void> register(AuthRequest auth);
+     ResponseObject<String> login(AuthRequest auth);
      boolean checkEmailExists(String email);
 }

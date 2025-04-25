@@ -1,6 +1,8 @@
 package com.r2s.structure_sample.service.impl;
 
 import com.r2s.structure_sample.common.enums.Role;
+import com.r2s.structure_sample.common.enums.SendNotificationType;
+import com.r2s.structure_sample.common.event.UserRegisteredEvent;
 import com.r2s.structure_sample.common.response.ResponseObject;
 import com.r2s.structure_sample.common.util.JwtUtil;
 import com.r2s.structure_sample.dto.AuthRequest;
@@ -11,6 +13,7 @@ import com.r2s.structure_sample.service.AuthService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,9 +29,10 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public ResponseObject register(AuthRequest auth) {
+    public ResponseObject<Void> register(AuthRequest auth) {
         if(checkEmailExists(auth.getEmail())) {
             throw new ResourceConflictException("Email already exists");
         }
@@ -36,11 +40,14 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.USER);
         authRepository.save(user);
-        return ResponseObject.builder().message("Success registry").status(HttpStatus.CREATED).build();
+
+        // publish user registration successful event
+        eventPublisher.publishEvent(new UserRegisteredEvent(this, user));
+        return ResponseObject.<Void>builder().message("Success registry").status(HttpStatus.CREATED).build();
     }
 
     @Override
-    public ResponseObject login(AuthRequest auth) {
+    public ResponseObject<String> login(AuthRequest auth) {
         if(!checkEmailExists(auth.getEmail())) {
             throw new EntityNotFoundException("Email not found");
         }
@@ -54,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtUtil.generateToken(userDetails.getEmail());
 
-        return ResponseObject.builder().message("Login successful").data(token).status(HttpStatus.OK).build();
+        return ResponseObject.<String>builder().message("Login successful").data(token).status(HttpStatus.OK).build();
     }
 
 

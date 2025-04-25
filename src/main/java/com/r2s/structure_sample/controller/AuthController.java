@@ -18,13 +18,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ResponseObject> register(@RequestBody @Valid AuthRequest authRequest) {
+    public ResponseEntity<ResponseObject<?>> register(@RequestBody @Valid AuthRequest authRequest) {
         var res = authService.register(authRequest);
         return ResponseEntity.status(res.getStatus()).body(res);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ResponseObject> login(@RequestBody @Valid AuthRequest authRequest) {
+    public ResponseEntity<ResponseObject<?>> login(@RequestBody @Valid AuthRequest authRequest) {
         var res = authService.login(authRequest);
         return ResponseEntity.status(res.getStatus()).body(res);
     }
