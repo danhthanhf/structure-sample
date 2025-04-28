@@ -91,7 +91,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/user/**").hasAnyRole(Role.ADMIN.name(), Role.USER.name())
+                        .requestMatchers("/api/v1/user/**").hasAnyRole(Role.ADMIN.name(), Role.USER.name(), Role.MANAGER.name())
                         .requestMatchers("/api/v1/manager/**").hasAnyRole(Role.ADMIN.name(), Role.MANAGER.name())
                         .requestMatchers("/api/v1/admin/**").hasRole(Role.ADMIN.name())
                         .anyRequest().permitAll()
