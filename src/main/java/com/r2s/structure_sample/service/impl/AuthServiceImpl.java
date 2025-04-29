@@ -28,8 +28,8 @@ public class AuthServiceImpl implements AuthService {
     private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
     private final ApplicationEventPublisher eventPublisher;
+    private final JwtUtil jwtUtil;
 
     @Override
     public ResponseObject<Void> register(AuthRequest auth) {
@@ -61,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtUtil.generateToken(userDetails.getEmail());
 
-        return ResponseObject.<String>builder().message("Login successful").data(token).status(HttpStatus.OK).build();
+        return ResponseObject.<String>builder().message("Login successfully").data(token).status(HttpStatus.OK).build();
     }
 
 

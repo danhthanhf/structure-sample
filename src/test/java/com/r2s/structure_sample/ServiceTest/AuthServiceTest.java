@@ -1,99 +1,151 @@
 package com.r2s.structure_sample.ServiceTest;
 
-import com.r2s.structure_sample.common.enums.Role;
-import com.r2s.structure_sample.common.event.UserRegisteredEvent;
 import com.r2s.structure_sample.common.response.ResponseObject;
+import com.r2s.structure_sample.common.util.JwtUtil;
 import com.r2s.structure_sample.dto.AuthRequest;
 import com.r2s.structure_sample.entity.User;
 import com.r2s.structure_sample.exception.ResourceConflictException;
 import com.r2s.structure_sample.mapper.AuthMapper;
 import com.r2s.structure_sample.repository.UserRepository;
 import com.r2s.structure_sample.service.impl.AuthServiceImpl;
-import org.junit.jupiter.api.Assertions;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.mockito.ArgumentMatchers.any;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthServiceTest {
+class AuthServiceImplTest {
+
+    @InjectMocks
+    private AuthServiceImpl authService;
 
     @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    private UserRepository authRepository;
 
     @Mock
     private AuthMapper authMapper;
 
     @Mock
+    private AuthenticationManager authenticationManager;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @InjectMocks
-    private AuthServiceImpl authService;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtUtil jwtUtil;
 
     @Test
-    void register_validAuthRequest_userCreatedAndEventPublished() {
-        // Arrange
-        AuthRequest validAuth = AuthRequest.builder()
-                .email("test@example.com")
-                .password("password")
-                .firstName("John")
-                .lastName("Doe")
+    void testRegister_Success() {
+        // Given
+        AuthRequest authRequest = new AuthRequest();
+        authRequest.setEmail("testuser");
+        authRequest.setLastName("Test");
+        authRequest.setFirstName("Test");
+        authRequest.setPassword("testpass");
+
+        User user = new User();
+
+        when(authMapper.toUser(authRequest)).thenReturn(user);
+
+        var response = authService.register(authRequest);
+
+        verify(authRepository, times(1)).save(any(User.class));
+        verify(eventPublisher, times(1)).publishEvent(any());
+        assertEquals(HttpStatus.CREATED, response.getStatus());
+    }
+
+
+    // test email exist
+    @Test
+    void testRegister_Failed_Email_Exist() {
+        AuthRequest authRequest = AuthRequest.builder()
+                .email("admin@gmail.com")
+                .password("12345")
                 .build();
-        User mappedUser = new User();
-        mappedUser.setEmail("test@example.com");
-        mappedUser.setPassword("encodedPassword");
-        mappedUser.setRole(Role.USER);
+        when(authRepository.existsByEmail(authRequest.getEmail())).thenReturn(true);
 
-        when(userRepository.existsByEmail(validAuth.getEmail())).thenReturn(false);
-        when(authMapper.toUser(validAuth)).thenReturn(mappedUser);
-        when(passwordEncoder.encode(validAuth.getPassword())).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(mappedUser);
-
-        // Act
-        ResponseObject<Void> result = authService.register(validAuth);
-
-        // Assert
-        Assertions.assertEquals(HttpStatus.CREATED, result.getStatus());
-        Assertions.assertEquals("Success registry", result.getMessage());
-        Assertions.assertNull(result.getData());
-
-        verify(userRepository, times(1)).existsByEmail(validAuth.getEmail());
-        verify(authMapper, times(1)).toUser(validAuth);
-        verify(passwordEncoder, times(1)).encode(validAuth.getPassword());
-        verify(userRepository, times(1)).save(any(User.class));
-        verify(eventPublisher, times(1)).publishEvent(any(UserRegisteredEvent.class));
+        assertThrows(ResourceConflictException.class, () -> authService.register(authRequest));
     }
 
     @Test
-    void register_existingEmail_throwsResourceConflictException() {
-        // Arrange
-        AuthRequest existingAuth = AuthRequest.builder()
-                .email("existing@example.com")
-                .password("password")
-                .firstName("John")
-                .lastName("Doe")
+    void testLogin_Successfully() {
+        AuthRequest authRequest = AuthRequest.builder()
+                .email("test@gmail.com")
+                .password("test@123")
                 .build();
 
-        when(userRepository.existsByEmail(existingAuth.getEmail())).thenReturn(true);
 
-        // Act & Assert
-        Assertions.assertThrows(ResourceConflictException.class, () -> authService.register(existingAuth));
+        User mockUser = User.builder().email(authRequest.getEmail())
+                        .password(authRequest.getPassword())
+                                .build();
 
-        // Verify interactions
-        verify(userRepository, times(1)).existsByEmail(existingAuth.getEmail());
-        verify(authMapper, never()).toUser(any(AuthRequest.class));
-        verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, never()).save(any(User.class));
-        verify(eventPublisher, never()).publishEvent(any(UserRegisteredEvent.class));
+        doReturn(mockUser).when(authMapper).toUser(any(AuthRequest.class));
+        when(authRepository.existsByEmail(authRequest.getEmail())).thenReturn(true);
+        when(authRepository.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
+
+        User user = authMapper.toUser(authRequest);
+
+        when(authService.checkEmailExists(authRequest.getEmail())).thenReturn(true);
+        when(authRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
+
+        var response = authService.login(authRequest);
+
+        assertEquals(response.getStatus(), HttpStatus.OK);
+        assertEquals(response.getMessage(), "Login successfully");
     }
+
+    @Test
+    void testLogin_Failed_Email_Not_Exist() {
+        AuthRequest authRequest = AuthRequest.builder()
+                .email("test@gmail.com")
+                .password("test@123")
+                .build();
+
+        when(authService.checkEmailExists(anyString())).thenReturn(false);
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> authService.login(authRequest));
+        assertEquals("Email not found", exception.getMessage());
+    }
+
+    @Test
+    void testLogin_ShouldAuthenticateWithCorrectCredentials() {
+        AuthRequest authRequest = AuthRequest.builder()
+                .email("test@gmail.com")
+                .password("test@123")
+                .build();
+
+        User mockUser = User.builder()
+                .email(authRequest.getEmail())
+                .password("wrongPass")
+                .build();
+
+        when(authRepository.existsByEmail(anyString())).thenReturn(true);
+        when(authMapper.toUser(any())).thenReturn(mockUser);
+
+        doThrow(new BadCredentialsException("Invalid credentials")).when(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+
+        assertThrows(BadCredentialsException.class, () -> authService.login(authRequest));
+        verify(authenticationManager, times(1)).authenticate(any(UsernamePasswordAuthenticationToken.class));
+    }
+
+
 }

@@ -4,11 +4,13 @@ package com.r2s.structure_sample.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 @Data
 @Builder
+@NoArgsConstructor
+@Setter
+@AllArgsConstructor
 public class AuthRequest {
     @NotEmpty(message = "Email is not empty!")
     @Email(message = "Invalid email format")
