@@ -8,7 +8,7 @@ import com.r2s.structure_sample.common.util.JwtUtil;
 import com.r2s.structure_sample.dto.LoginRequest;
 import com.r2s.structure_sample.dto.RegisterRequest;
 import com.r2s.structure_sample.entity.User;
-import com.r2s.structure_sample.exception.ResourceConflictException;
+import com.r2s.structure_sample.exception.type.ResourceConflictException;
 import com.r2s.structure_sample.mapper.UserMapper;
 import com.r2s.structure_sample.repository.UserRepository;
 import com.r2s.structure_sample.service.AuthService;

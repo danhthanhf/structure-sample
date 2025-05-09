@@ -2,10 +2,7 @@ package com.r2s.structure_sample.entity;
 
 import com.r2s.structure_sample.common.enums.Role;
 import com.r2s.structure_sample.common.model.BaseModel;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
@@ -23,6 +20,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "users")
 public class User extends BaseModel implements UserDetails {
     @NotEmpty(message = "Email is required")
     @Email(message = "Invalid email format")

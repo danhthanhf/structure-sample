@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.r2s.structure_sample.common.response.ApiResponse;
 import com.r2s.structure_sample.common.response.LoginResponse;
 import com.r2s.structure_sample.common.util.JwtUtil;
+import com.r2s.structure_sample.dto.LoginRequest;
 import com.r2s.structure_sample.dto.RegisterRequest;
 import com.r2s.structure_sample.repository.UserRepository;
 import com.r2s.structure_sample.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AuthController.class)
-//@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc(addFilters = false)
 public class AuthControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -66,7 +68,7 @@ public class AuthControllerTest {
 
     @Test
     void testLogin_Success() throws Exception {
-        RegisterRequest auth = RegisterRequest.builder()
+        LoginRequest auth = LoginRequest.builder()
                 .email("test@gmail.com")
                 .password("test@123")
                 .build();
@@ -75,7 +77,7 @@ public class AuthControllerTest {
 
         ApiResponse<LoginResponse> response = ApiResponse.success(loginResponse, "Login successfully");
 
-        when(authService.login(any(RegisterRequest.class))).thenReturn(response);
+        when(authService.login(any(LoginRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
