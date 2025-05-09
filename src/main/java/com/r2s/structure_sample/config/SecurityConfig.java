@@ -2,7 +2,7 @@ package com.r2s.structure_sample.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.r2s.structure_sample.common.enums.Role;
-import com.r2s.structure_sample.common.response.ResponseObject;
+import com.r2s.structure_sample.common.response.ApiResponse;
 import com.r2s.structure_sample.security.JwtFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +23,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.nio.file.AccessDeniedException;
 
 @Configuration
 @RequiredArgsConstructor
@@ -48,10 +46,7 @@ public class SecurityConfig {
     private AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            var res = ResponseObject.builder()
-                    .status(HttpStatus.FORBIDDEN)
-                    .message("You don't have permission to access this resource")
-                    .build();
+            var res = ApiResponse.failure("Authentication required");
             var objectMapper = new ObjectMapper();
             response.setContentType(("application/json"));
             response.getWriter().write(objectMapper.writeValueAsString(res));
@@ -62,10 +57,7 @@ public class SecurityConfig {
         return (request, response, authenticationEntryPointException) -> {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-            var res = ResponseObject.builder()
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .message("Unauthorized")
-                    .build();
+            var res = ApiResponse.failure("Access denied");
 
             if (authenticationEntryPointException instanceof BadCredentialsException) {
                 res.setMessage("Invalid username or password");

@@ -1,12 +1,17 @@
 package com.r2s.structure_sample.common.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginResponse {
     private String lastName;
     private String firstName;
+    private String email;
     private String accessToken;
 }

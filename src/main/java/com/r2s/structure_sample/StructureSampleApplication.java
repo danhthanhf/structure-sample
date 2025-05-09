@@ -1,18 +1,10 @@
 package com.r2s.structure_sample;
 
-import com.r2s.structure_sample.common.enums.Role;
-import com.r2s.structure_sample.dto.AuthRequest;
-import com.r2s.structure_sample.entity.User;
 import com.r2s.structure_sample.repository.UserRepository;
-import com.r2s.structure_sample.service.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.List;
 
 @SpringBootApplication
 @RequiredArgsConstructor

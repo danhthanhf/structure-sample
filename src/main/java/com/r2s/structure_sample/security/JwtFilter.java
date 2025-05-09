@@ -1,11 +1,9 @@
 package com.r2s.structure_sample.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.r2s.structure_sample.common.response.ResponseObject;
+import com.r2s.structure_sample.common.response.ApiResponse;
 import com.r2s.structure_sample.common.util.JwtUtil;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.Map;
 
 @Component
@@ -55,10 +52,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private void handleJwtError(HttpServletResponse response, Exception ex) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");
-        var res = ResponseObject.builder()
-                .status(HttpStatus.UNAUTHORIZED)
-                .message(ex.getMessage())
-                .build();
+        var res = ApiResponse.failure("Invalid token", Map.of("error", ex.getMessage()));
         response.getWriter().write(new ObjectMapper().writeValueAsString(
                 res
         ));
