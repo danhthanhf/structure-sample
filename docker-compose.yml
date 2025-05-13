@@ -17,6 +17,7 @@ services:
       retries: 3
 
   spring-boot-app:
+    build: .
     image: structure-be:latest
     ports:
       - "8080:8080"

@@ -1,9 +1,10 @@
-FROM openjdk:17-jdk-slim
+FROM open:jdk-17-slim
 
-WORKDIR /app
-
-COPY target/*.jar app.jar
+WORKDIR app
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+COPY target/*.jar app.jar
+
+ENTRYPOINT ["java"]
+CMD ["-jar", "app.jar"]
